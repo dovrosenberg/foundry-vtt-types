@@ -1,4 +1,10 @@
 import type { ConfiguredDocumentClassForName } from "../../../../types/helperTypes.d.mts";
+import type { DOCUMENT_OWNERSHIP_LEVELS } from "../../../common/constants.d.mts";
+import type {
+  DatabaseCreateOperation,
+  DatabaseDeleteOperation,
+  DatabaseUpdateOperation,
+} from "../../../common/abstract/_types.d.mts";
 
 declare global {
   namespace Combatant {
@@ -28,6 +34,11 @@ declare global {
 
     /** This is treated as a non-player combatant if it has no associated actor and no player users who can control it */
     get isNPC(): boolean;
+
+    /**
+     * Eschew `ClientDocument`'s redirection to `Combat#permission` in favor of special ownership determination.
+     */
+    override get permission(): DOCUMENT_OWNERSHIP_LEVELS;
 
     override get visible(): boolean;
 
@@ -79,9 +90,22 @@ declare global {
      */
     protected _getInitiativeFormula(): string;
 
-    /**
-     * @deprecated since v9
-     */
-    get isVisible(): boolean;
+    protected static override _preCreateOperation(
+      documents: Combatant[],
+      operation: DatabaseCreateOperation,
+      _user: foundry.documents.BaseUser,
+    ): Promise<boolean | void>;
+
+    protected static override _preUpdateOperation(
+      _documents: Combatant[],
+      operation: DatabaseUpdateOperation,
+      _user: foundry.documents.BaseUser,
+    ): Promise<boolean | void>;
+
+    protected static override _preDeleteOperation(
+      _documents: Combatant[],
+      operation: DatabaseDeleteOperation,
+      _user: foundry.documents.BaseUser,
+    ): Promise<boolean | void>;
   }
 }

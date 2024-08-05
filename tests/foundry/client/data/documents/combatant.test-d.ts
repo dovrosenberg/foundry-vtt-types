@@ -1,20 +1,28 @@
 import { expectTypeOf } from "vitest";
-import type { StoredDocument } from "../../../../../src/types/utils.d.mts";
+import type { DOCUMENT_OWNERSHIP_LEVELS } from "../../../../../src/foundry/common/constants.d.mts";
 
-const combatant = new Combatant({}, {});
+const combatant = new Combatant();
 
 // properties
-expectTypeOf(combatant.pack).toEqualTypeOf<string | null>();
-expectTypeOf(combatant.parent).toEqualTypeOf<Combat | null>();
+expectTypeOf(combatant._videoSrc).toEqualTypeOf<string | null>();
+expectTypeOf(combatant.resource).toEqualTypeOf<`${number}` | number | boolean | null>();
 expectTypeOf(combatant.combat).toEqualTypeOf<Combat | null>();
+expectTypeOf(combatant.isNPC).toEqualTypeOf<boolean>();
+expectTypeOf(combatant.permission).toEqualTypeOf<DOCUMENT_OWNERSHIP_LEVELS>();
+expectTypeOf(combatant.visible).toEqualTypeOf<boolean>();
 expectTypeOf(combatant.actor).toEqualTypeOf<Actor | null>();
 expectTypeOf(combatant.token).toEqualTypeOf<TokenDocument | null>();
-expectTypeOf(combatant.apps).toEqualTypeOf<Record<string, Application>>();
+expectTypeOf(combatant.players).toEqualTypeOf<User.ConfiguredInstance[]>();
+expectTypeOf(combatant.isDefeated).toEqualTypeOf<boolean>();
 
-// static properties
-expectTypeOf(Combatant.create({ name: "Some Combatant" })).toEqualTypeOf<
-  Promise<StoredDocument<Combatant> | undefined>
->();
-expectTypeOf(Combatant.createDocuments([])).toEqualTypeOf<Promise<StoredDocument<Combatant>[]>>();
-expectTypeOf(Combatant.updateDocuments([])).toEqualTypeOf<Promise<Combatant[]>>();
-expectTypeOf(Combatant.deleteDocuments([])).toEqualTypeOf<Promise<Combatant[]>>();
+const baseUser = new foundry.documents.BaseUser({ name: "username" });
+
+expectTypeOf(
+  combatant.testUserPermission(baseUser, foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS.LIMITED),
+).toEqualTypeOf<boolean>();
+expectTypeOf(combatant.getInitiativeRoll()).toEqualTypeOf<Roll>();
+expectTypeOf(combatant.rollInitiative("1d20")).toEqualTypeOf<Promise<Combatant | undefined>>();
+expectTypeOf(combatant.prepareDerivedData()).toEqualTypeOf<void>();
+expectTypeOf(combatant.updateResource()).toEqualTypeOf<`${number}` | number | boolean | null>();
+
+expectTypeOf(combatant.sheet).toEqualTypeOf<FormApplication | foundry.applications.api.ApplicationV2 | null>();
