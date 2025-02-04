@@ -268,7 +268,9 @@ declare namespace BaseShapeData {
 /**
  * A data model intended to be used as an inner EmbeddedDataField which defines a geometric shape.
  */
-declare abstract class BaseShapeData extends DataModel<BaseShapeData.Schema> {
+declare abstract class BaseShapeData<
+  Schema extends BaseShapeData.Schema = BaseShapeData.Schema,
+> extends DataModel<Schema> {
   /**
    * The possible shape types.
    */
@@ -321,7 +323,7 @@ declare namespace RectangleShapeData {
 /**
  * The data model for a rectangular shape.
  */
-declare class RectangleShapeData extends BaseShapeData {
+declare class RectangleShapeData extends BaseShapeData<RectangleShapeData.Schema> {
   /**
    * @defaultValue `"rectangle"`
    */
@@ -355,7 +357,7 @@ declare namespace CircleShapeData {
 /**
  * The data model for a circle shape.
  */
-declare class CircleShapeData extends BaseShapeData {
+declare class CircleShapeData extends BaseShapeData<CircleShapeData.Schema> {
   /**
    * @defaultValue `"circle"`
    */
@@ -401,7 +403,7 @@ declare namespace EllipseShapeData {
 /**
  * The data model for an ellipse shape.
  */
-declare class EllipseShapeData extends BaseShapeData {
+declare class EllipseShapeData extends BaseShapeData<EllipseShapeData.Schema> {
   /**
    * @defaultValue `"ellipse"`
    */
@@ -427,7 +429,7 @@ declare namespace PolygonShapeData {
 /**
  * The data model for a polygon shape.
  */
-declare class PolygonShapeData extends BaseShapeData {
+declare class PolygonShapeData extends BaseShapeData<PolygonShapeData.Schema> {
   /**
    * @defaultValue `"polygon"`
    */
@@ -603,7 +605,7 @@ declare class PrototypeToken extends DataModel<PrototypeToken.Schema, any> {
   /**
    * @see foundry.abstract.Document#setFlag
    */
-  setFlag(args: unknown): unknown;
+  setFlag(args: unknown): Promise<unknown>;
 
   /**
    * @see foundry.abstract.Document#unsetFlag
@@ -615,7 +617,7 @@ declare class PrototypeToken extends DataModel<PrototypeToken.Schema, any> {
    */
   testUserPermission(
     user: User,
-    permission: unknown,
+    permission: keyof typeof foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS | foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS,
     { exact }: { exact: boolean },
   ): ReturnType<this["actor"]["testUserPermission"]>;
 

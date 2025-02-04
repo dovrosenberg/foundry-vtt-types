@@ -211,7 +211,7 @@ declare global {
      */
     testUserPermission(
       user: User,
-      permission: string | number,
+      permission: keyof typeof foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS | foundry.CONST.DOCUMENT_OWNERSHIP_LEVELS,
       options?: InexactPartial<{
         /**
          * Require the exact permission level requested?
