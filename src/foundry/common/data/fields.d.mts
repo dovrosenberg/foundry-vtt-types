@@ -194,7 +194,7 @@ declare abstract class DataField<
    * @returns A valid initial value
    * @throws An error if there is no valid initial value defined
    */
-  getInitialValue(data: DataField.CleanOptions["source"]): InitializedType;
+  getInitialValue(data?: DataField.CleanOptions["source"] | undefined): InitializedType;
 
   /**
    * Validate a candidate input for this field, ensuring it meets the field requirements.
@@ -725,31 +725,33 @@ declare class SchemaField<
   /**
    * An array of field names which are present in the schema.
    */
-  keys(): string[];
+  key<F extends Fields = Fields>(): keyof F[];
 
   /**
    * An array of DataField instances which are present in the schema.
    */
-  values(): DataField.Unknown[];
+  values<F extends Fields = Fields>(): Array<F[keyof F]>;
 
   /**
    * An array of [name, DataField] tuples which define the schema.
    */
-  entries(): [name: string, dataField: DataField.Unknown][];
+  entries<F extends Fields = Fields>(): [name: string, dataField: F[keyof F]][];
 
   /**
    * Test whether a certain field name belongs to this schema definition.
    * @param fieldName - The field name
    * @returns Does the named field exist in this schema?
    */
-  has(fieldName: string): boolean;
+  has<T extends string, F extends Fields = Fields>(fieldName: T): T extends keyof F ? true : false;
 
   /**
    * Get a DataField instance from the schema by name
    * @param fieldName - The field name
    * @returns The DataField instance or undefined
    */
-  get(fieldName: string): DataField.Unknown | undefined;
+  get<T extends string, F extends Fields = Fields>(fieldName: T): T extends keyof F ? F[T] : undefined;
+
+  // get(fieldName: string): DataField.Unknown | undefined;
 
   /**
    * Traverse the schema, obtaining the DataField definition for a particular field.
@@ -783,12 +785,12 @@ declare class SchemaField<
     fn: keyof this | ((this: this, value: undefined | null, options: Options) => Return),
     value?: undefined | null,
     options?: Options,
-  ): Return;
+  ): InexactPartial<this>;
   override apply<Value, Options, Return>(
     fn: keyof this | ((this: this, value: Value, options: Options) => Return),
     value: Value,
     options?: Options,
-  ): Return;
+  ): InexactPartial<this>;
 
   /**
    * Migrate this field's candidate source data.

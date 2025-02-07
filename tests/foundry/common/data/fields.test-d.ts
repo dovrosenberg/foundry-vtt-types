@@ -1,6 +1,181 @@
 import { expectTypeOf } from "vitest";
+import type { EffectChangeData } from "../../../../src/foundry/common/documents/_types.d.mts";
 
-type DataSchema = foundry.data.fields.DataSchema;
+// DataField
+declare const dataField: foundry.data.fields.DataField;
+expectTypeOf(dataField.options).toEqualTypeOf<foundry.data.fields.DataField.DefaultOptions>();
+expectTypeOf(dataField.required).toEqualTypeOf<boolean>();
+expectTypeOf(dataField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(dataField.gmOnly).toEqualTypeOf<boolean>();
+expectTypeOf(dataField.initial).toEqualTypeOf<
+  foundry.data.fields.DataField.InitializedType<foundry.data.fields.DataField.DefaultOptions>
+>();
+expectTypeOf(dataField.readonly).toEqualTypeOf<boolean>();
+expectTypeOf(dataField.label).toEqualTypeOf<string>();
+expectTypeOf(dataField.hint).toEqualTypeOf<string>();
+expectTypeOf(dataField.validationError).toEqualTypeOf<string>();
+expectTypeOf(dataField.name).toEqualTypeOf<string | undefined>();
+expectTypeOf(dataField.parent).toEqualTypeOf<foundry.data.fields.DataField.Any | undefined>();
+expectTypeOf(dataField.fieldPath).toEqualTypeOf<string>();
+expectTypeOf(dataField.toInput()).toEqualTypeOf<HTMLElement | HTMLCollection>();
+expectTypeOf(dataField.toFormGroup()).toEqualTypeOf<HTMLDivElement>();
+
+expectTypeOf(foundry.data.fields.DataField.hierarchical).toEqualTypeOf<boolean>();
+expectTypeOf(foundry.data.fields.DataField.recursive).toEqualTypeOf<boolean>();
+expectTypeOf(foundry.data.fields.DataField.hasFormSupport).toEqualTypeOf<boolean>();
+
+// NOTE: Most of the test failures are a result of the actual type including 'undefined' even though it
+//    shouldn't because there is an initial value specified
+
+// SchemaField
+type FooType = foundry.data.fields.StringField<{ initial: "bars" }>;
+const schema: {
+  foo: FooType;
+} = {
+  foo: new foundry.data.fields.StringField({ initial: "bars" }),
+};
+const schemaField = new foundry.data.fields.SchemaField(schema);
+
+expectTypeOf(schemaField.required).toEqualTypeOf<boolean>();
+expectTypeOf(schemaField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(schemaField.fields).toEqualTypeOf<{
+  foo: foundry.data.fields.StringField<{ initial: "bars" }>;
+}>();
+expectTypeOf(schemaField.keys()).toEqualTypeOf<string[]>();
+expectTypeOf(schemaField.values()).toEqualTypeOf<FooType[]>();
+
+// expectTypeOf(schemaField.entries()).toEqualTypeOf<[name: string, dataField: FooType][]>();
+const entries = schemaField.entries()[0];
+expectTypeOf(entries[0]).toEqualTypeOf<string>();
+expectTypeOf(entries[1]).toEqualTypeOf<FooType>();
+
+expectTypeOf(schemaField.has("foo")).toEqualTypeOf<true>();
+expectTypeOf(schemaField.has("bar")).toEqualTypeOf<false>();
+expectTypeOf(schemaField.get("foo")).toEqualTypeOf<FooType>();
+expectTypeOf(schemaField.get("bar")).toEqualTypeOf<undefined>();
+expectTypeOf(schemaField.getField("foo")).toEqualTypeOf<foundry.data.fields.DataField.Unknown | undefined>();
+expectTypeOf(schemaField.getField("bar")).toEqualTypeOf<foundry.data.fields.DataField.Unknown | undefined>();
+
+declare const model: foundry.abstract.DataModel.Any;
+expectTypeOf(schemaField.initialize({ foo: "bar" }, model)).toEqualTypeOf<
+  { foo: string } | (() => { foo: string } | null)
+>();
+expectTypeOf(schemaField.toObject({ foo: "bars" })).toEqualTypeOf<{ foo: string }>();
+expectTypeOf(schemaField.migrateSource({}, "")).toEqualTypeOf<unknown>();
+
+expectTypeOf(foundry.data.fields.SchemaField.recursive).toEqualTypeOf<boolean>();
+
+// BooleanField
+const booleanField = new foundry.data.fields.BooleanField({ initial: true });
+
+expectTypeOf(booleanField.required).toEqualTypeOf<boolean>();
+expectTypeOf(booleanField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(booleanField.initial).toEqualTypeOf<boolean>();
+
+expectTypeOf(booleanField.apply(() => true, false)).toEqualTypeOf<boolean>();
+expectTypeOf(booleanField.clean(true)).toEqualTypeOf<boolean>();
+expectTypeOf(booleanField.getInitialValue()).toEqualTypeOf<boolean>();
+expectTypeOf(booleanField.getInitialValue({})).toEqualTypeOf<boolean>();
+expectTypeOf(booleanField.validate(false)).toEqualTypeOf<foundry.data.validation.DataModelValidationError | void>();
+expectTypeOf(booleanField.initialize(true, model)).toEqualTypeOf<boolean | (() => boolean | null)>();
+expectTypeOf(booleanField.toObject(false)).toEqualTypeOf<boolean>();
+
+declare const change: EffectChangeData;
+expectTypeOf(booleanField.applyChange(false, model, change)).toEqualTypeOf<boolean>();
+
+// NumberField
+const numberField = new foundry.data.fields.NumberField({ initial: 7 });
+
+expectTypeOf(numberField.required).toEqualTypeOf<boolean>();
+expectTypeOf(numberField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(numberField.initial).toEqualTypeOf<number | null>();
+expectTypeOf(numberField.min).toEqualTypeOf<number | undefined>();
+expectTypeOf(numberField.max).toEqualTypeOf<number | undefined>();
+expectTypeOf(numberField.step).toEqualTypeOf<number | undefined>();
+expectTypeOf(numberField.integer).toEqualTypeOf<boolean>();
+expectTypeOf(numberField.positive).toEqualTypeOf<boolean>();
+expectTypeOf(numberField.choices).toEqualTypeOf<
+  number[] | Record<number, string> | (() => number[] | Record<number, string>) | undefined
+>();
+expectTypeOf(numberField.toFormGroup()).toEqualTypeOf<HTMLDivElement>();
+expectTypeOf(numberField.toInput()).toEqualTypeOf<HTMLElement | HTMLCollection>();
+
+expectTypeOf(numberField.apply(() => 4, 6)).toEqualTypeOf<number>();
+expectTypeOf(numberField.clean(3)).toEqualTypeOf<number | null>();
+expectTypeOf(numberField.getInitialValue()).toEqualTypeOf<number | null>();
+expectTypeOf(numberField.getInitialValue({})).toEqualTypeOf<number | null>();
+expectTypeOf(numberField.validate(4)).toEqualTypeOf<foundry.data.validation.DataModelValidationError | void>();
+expectTypeOf(numberField.initialize(3, model)).toEqualTypeOf<number | null | (() => number | null)>();
+expectTypeOf(numberField.toObject(4)).toEqualTypeOf<number | null>();
+expectTypeOf(numberField.applyChange(2, model, change)).toEqualTypeOf<number | null>();
+
+// StringField
+const stringField = new foundry.data.fields.StringField({ initial: "abc" });
+
+expectTypeOf(stringField.required).toEqualTypeOf<boolean>();
+expectTypeOf(stringField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(stringField.initial).toEqualTypeOf<string>();
+expectTypeOf(stringField.blank).toEqualTypeOf<boolean>();
+expectTypeOf(stringField.trim).toEqualTypeOf<boolean>();
+expectTypeOf(stringField.textSearch).toEqualTypeOf<boolean>();
+expectTypeOf(stringField.choices).toEqualTypeOf<
+  string[] | Record<string, string> | (() => string[] | Record<string, string>) | undefined
+>();
+expectTypeOf(stringField.toFormGroup()).toEqualTypeOf<HTMLDivElement>();
+expectTypeOf(stringField.toInput()).toEqualTypeOf<HTMLElement | HTMLCollection>();
+
+expectTypeOf(stringField.apply(() => 4, 6)).toEqualTypeOf<string>();
+expectTypeOf(stringField.clean("foo")).toEqualTypeOf<string>();
+expectTypeOf(stringField.getInitialValue()).toEqualTypeOf<string>();
+expectTypeOf(stringField.getInitialValue({})).toEqualTypeOf<string>();
+expectTypeOf(stringField.validate("foo")).toEqualTypeOf<foundry.data.validation.DataModelValidationError | void>();
+expectTypeOf(stringField.initialize("foo", model)).toEqualTypeOf<string | (() => string)>();
+expectTypeOf(stringField.toObject("foo")).toEqualTypeOf<string>();
+expectTypeOf(stringField.applyChange("foo", model, change)).toEqualTypeOf<string>();
+
+// ObjectField
+type ObjType = {
+  foo: string;
+};
+const objectField = new foundry.data.fields.ObjectField({ initial: { foo: "bar" } as ObjType });
+
+expectTypeOf(objectField.required).toEqualTypeOf<boolean>();
+expectTypeOf(objectField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(objectField.initial).toEqualTypeOf<ObjType>();
+
+// ArrayField
+
+// SetField
+// EmbeddedDataField
+// EmbeddedCollectionField
+// EmbeddedCollectionDeltaField
+// EmbeddedDocumentField
+// DocumentIdField
+// DocumentUUIDField
+// ForeignDocumentField
+// ColorField
+// FilePathField
+// AngleField
+// AlphaField
+// HueField
+// DocumentOwnershipField
+// JSONField
+// AnyField
+// HTMLField
+// IntegerSortField
+// DocumentStatsField
+// DocumentTypeField
+// TypeDataField
+// TypedSchemaField
+
+interface TestTypes extends foundry.data.fields.TypedSchemaField.Types {
+  rectangle: typeof foundry.data.RectangleShapeData;
+}
+declare const t: TestTypes;
+expectTypeOf(t.rectangle).toEqualTypeOf<typeof foundry.data.RectangleShapeData>();
+
+// ModelValidationError
+// JavaScriptField
 
 // #2554 Null and undefined for SchemaField and EmbeddedDataField
 
@@ -24,6 +199,7 @@ new foundry.documents.BaseNote({
 
 // @ts-expect-error - A textAnchor cannot be an arbitrary number.
 new foundry.documents.BaseNote({ textAnchor: 999 });
+
 // Should be correct
 new foundry.documents.BaseNote({ textAnchor: 2 });
 
