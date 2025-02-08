@@ -725,7 +725,7 @@ declare class SchemaField<
   /**
    * An array of field names which are present in the schema.
    */
-  key<F extends Fields = Fields>(): keyof F[];
+  keys<F extends Fields = Fields>(): keyof F[];
 
   /**
    * An array of DataField instances which are present in the schema.

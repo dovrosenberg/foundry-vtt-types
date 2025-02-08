@@ -1,6 +1,8 @@
 import { expectTypeOf } from "vitest";
 import type { EffectChangeData } from "../../../../src/foundry/common/documents/_types.d.mts";
 
+type InitialType<ReturnType> = ReturnType | ((initialData: unknown) => ReturnType);
+
 // DataField
 declare const dataField: foundry.data.fields.DataField;
 expectTypeOf(dataField.options).toEqualTypeOf<foundry.data.fields.DataField.DefaultOptions>();
@@ -41,7 +43,7 @@ expectTypeOf(schemaField.nullable).toEqualTypeOf<boolean>();
 expectTypeOf(schemaField.fields).toEqualTypeOf<{
   foo: foundry.data.fields.StringField<{ initial: "bars" }>;
 }>();
-expectTypeOf(schemaField.keys()).toEqualTypeOf<string[]>();
+expectTypeOf(schemaField.keys()).toEqualTypeOf<keyof (typeof schema)[]>();
 expectTypeOf(schemaField.values()).toEqualTypeOf<FooType[]>();
 
 // expectTypeOf(schemaField.entries()).toEqualTypeOf<[name: string, dataField: FooType][]>();
@@ -57,6 +59,8 @@ expectTypeOf(schemaField.getField("foo")).toEqualTypeOf<foundry.data.fields.Data
 expectTypeOf(schemaField.getField("bar")).toEqualTypeOf<foundry.data.fields.DataField.Unknown | undefined>();
 
 declare const model: foundry.abstract.DataModel.Any;
+
+// TODO
 expectTypeOf(schemaField.initialize({ foo: "bar" }, model)).toEqualTypeOf<
   { foo: string } | (() => { foo: string } | null)
 >();
@@ -70,7 +74,7 @@ const booleanField = new foundry.data.fields.BooleanField({ initial: true });
 
 expectTypeOf(booleanField.required).toEqualTypeOf<boolean>();
 expectTypeOf(booleanField.nullable).toEqualTypeOf<boolean>();
-expectTypeOf(booleanField.initial).toEqualTypeOf<boolean>();
+expectTypeOf(booleanField.initial).toEqualTypeOf<InitialType<boolean>>();
 
 expectTypeOf(booleanField.apply(() => true, false)).toEqualTypeOf<boolean>();
 expectTypeOf(booleanField.clean(true)).toEqualTypeOf<boolean>();
@@ -88,7 +92,7 @@ const numberField = new foundry.data.fields.NumberField({ initial: 7 });
 
 expectTypeOf(numberField.required).toEqualTypeOf<boolean>();
 expectTypeOf(numberField.nullable).toEqualTypeOf<boolean>();
-expectTypeOf(numberField.initial).toEqualTypeOf<number | null>();
+expectTypeOf(numberField.initial).toEqualTypeOf<InitialType<number | null>>();
 expectTypeOf(numberField.min).toEqualTypeOf<number | undefined>();
 expectTypeOf(numberField.max).toEqualTypeOf<number | undefined>();
 expectTypeOf(numberField.step).toEqualTypeOf<number | undefined>();
@@ -114,7 +118,7 @@ const stringField = new foundry.data.fields.StringField({ initial: "abc" });
 
 expectTypeOf(stringField.required).toEqualTypeOf<boolean>();
 expectTypeOf(stringField.nullable).toEqualTypeOf<boolean>();
-expectTypeOf(stringField.initial).toEqualTypeOf<string>();
+expectTypeOf(stringField.initial).toEqualTypeOf<InitialType<string>>();
 expectTypeOf(stringField.blank).toEqualTypeOf<boolean>();
 expectTypeOf(stringField.trim).toEqualTypeOf<boolean>();
 expectTypeOf(stringField.textSearch).toEqualTypeOf<boolean>();
@@ -141,12 +145,43 @@ const objectField = new foundry.data.fields.ObjectField({ initial: { foo: "bar" 
 
 expectTypeOf(objectField.required).toEqualTypeOf<boolean>();
 expectTypeOf(objectField.nullable).toEqualTypeOf<boolean>();
-expectTypeOf(objectField.initial).toEqualTypeOf<ObjType>();
+
+// TODO
+expectTypeOf(objectField.initial).toEqualTypeOf<InitialType<ObjType>>();
 
 // ArrayField
+const arrayField = new foundry.data.fields.ArrayField(new foundry.data.fields.StringField(), { initial: [] });
+
+expectTypeOf(arrayField.required).toEqualTypeOf<boolean>();
+expectTypeOf(arrayField.nullable).toEqualTypeOf<boolean>();
+
+// TODO
+expectTypeOf(arrayField.initial).toEqualTypeOf<InitialType<string[]>>();
+expectTypeOf(arrayField.element).toEqualTypeOf<foundry.data.fields.StringField>();
+
+expectTypeOf(foundry.data.fields.ArrayField.recursive).toEqualTypeOf<boolean>();
 
 // SetField
+const setField = new foundry.data.fields.SetField(new foundry.data.fields.StringField(), { initial: [] });
+
+expectTypeOf(setField.required).toEqualTypeOf<boolean>();
+expectTypeOf(setField.nullable).toEqualTypeOf<boolean>();
+
+// TODO
+expectTypeOf(setField.initial).toEqualTypeOf<InitialType<string[]>>();
+expectTypeOf(setField.element).toEqualTypeOf<foundry.data.fields.StringField>();
+
 // EmbeddedDataField
+const embeddedDataField = new foundry.data.fields.EmbeddedDataField(Actor);
+
+expectTypeOf(embeddedDataField.model).toEqualTypeOf<typeof Actor>();
+
+const actor = new Actor({ name: "aaa", type: "base" });
+
+// TODO
+expectTypeOf(embeddedDataField.toObject(actor)).toEqualTypeOf<typeof Actor>();
+expectTypeOf(embeddedDataField.migrateSource({}, {})).toEqualTypeOf<unknown>();
+
 // EmbeddedCollectionField
 // EmbeddedCollectionDeltaField
 // EmbeddedDocumentField
@@ -168,6 +203,8 @@ expectTypeOf(objectField.initial).toEqualTypeOf<ObjType>();
 // TypeDataField
 // TypedSchemaField
 
+// Various special case tests
+// #3071 - SchemaField circularity issue
 interface TestTypes extends foundry.data.fields.TypedSchemaField.Types {
   rectangle: typeof foundry.data.RectangleShapeData;
 }
@@ -178,7 +215,6 @@ expectTypeOf(t.rectangle).toEqualTypeOf<typeof foundry.data.RectangleShapeData>(
 // JavaScriptField
 
 // #2554 Null and undefined for SchemaField and EmbeddedDataField
-
 new foundry.documents.BaseAmbientSound({
   darkness: null,
 });
@@ -291,20 +327,20 @@ expectTypeOf(AssignmentElementType.documentName).toEqualTypeOf<"ActiveEffect">()
 expectTypeOf(InitializedElementType.collectionName).toEqualTypeOf<"effects">();
 expectTypeOf(InitializedType.get("", { strict: true })).toEqualTypeOf<ActiveEffect>();
 
-const stringField = new foundry.data.fields.StringField();
+const stringField2 = new foundry.data.fields.StringField();
 
 const withChoices = new foundry.data.fields.StringField({ choices: ["a", "b", "c"] });
 
 // @ts-expect-error - A string field is not `nullable` by default and validate does not accept null.
-stringField.validate(null);
+stringField2.validate(null);
 
 // A string field can effectively cast anything. It's a very unsound method.
-stringField["_cast"](null);
+stringField2["_cast"](null);
 
 // `null` gets handled by `DataField.clean` and gets turned into `undefined` and then the default initial value.
-stringField.clean(null);
+stringField2.clean(null);
 
-stringField.initialize(null);
+stringField2.initialize(null);
 
 // @ts-expect-error - Options cannot accept null.
 type _NullOptions = DataField.Options<null>;
@@ -321,17 +357,17 @@ new foundry.data.fields.BooleanField({
   label: "foo",
 });
 
-stringField.toInput({ value: "foo" });
+stringField2.toInput({ value: "foo" });
 
 // @ts-expect-error values passed to `toInput` MUST be valid for the field
-stringField.toInput({ value: 200 });
+stringField2.toInput({ value: 200 });
 
 // Inputs generated from a StringField should accept additional config properties for possible use in `createSelectInput`.
-stringField.toInput({ blank: "blank option", choices: ["option1"] });
-stringField.toInput({ blank: "blank option", options: [{ value: "option2", label: "Option 2" }] });
+stringField2.toInput({ blank: "blank option", choices: ["option1"] });
+stringField2.toInput({ blank: "blank option", options: [{ value: "option2", label: "Option 2" }] });
 
 // @ts-expect-error - `blank` is not valid by itself when the field doesn't have choices set.
-stringField.toInput({ blank: "blank option" });
+stringField2.toInput({ blank: "blank option" });
 
 // Because this `StringField` has options it doesn't need to be passed in to `toInput` anymore.
 withChoices.toInput({ blank: "blank option" });
