@@ -194,7 +194,7 @@ declare abstract class DataField<
    * @returns A valid initial value
    * @throws An error if there is no valid initial value defined
    */
-  getInitialValue(data?: DataField.CleanOptions["source"] | undefined): InitializedType;
+  getInitialValue(data?: DataField.CleanOptions["source"]): InitializedType;
 
   /**
    * Validate a candidate input for this field, ensuring it meets the field requirements.

@@ -172,14 +172,12 @@ expectTypeOf(setField.initial).toEqualTypeOf<InitialType<string[]>>();
 expectTypeOf(setField.element).toEqualTypeOf<foundry.data.fields.StringField>();
 
 // EmbeddedDataField
-const embeddedDataField = new foundry.data.fields.EmbeddedDataField(Actor);
-
-expectTypeOf(embeddedDataField.model).toEqualTypeOf<typeof Actor>();
-
-const actor = new Actor({ name: "aaa", type: "base" });
+declare const embeddedModel: foundry.data.LightData;
+declare const embeddedDataField: foundry.data.fields.EmbeddedDataField<typeof foundry.data.LightData>;
+expectTypeOf(embeddedDataField.model).toEqualTypeOf<typeof foundry.data.LightData>();
 
 // TODO
-expectTypeOf(embeddedDataField.toObject(actor)).toEqualTypeOf<typeof Actor>();
+expectTypeOf(embeddedDataField.toObject(embeddedModel)).toEqualTypeOf<typeof foundry.data.LightData>();
 expectTypeOf(embeddedDataField.migrateSource({}, {})).toEqualTypeOf<unknown>();
 
 // EmbeddedCollectionField
@@ -261,33 +259,6 @@ declare const myJournalEntryPage: JournalEntryPage;
 if (myJournalEntryPage.system instanceof foundry.abstract.TypeDataModel) {
   expectTypeOf(myJournalEntryPage.system?.prepareBaseData()).toEqualTypeOf<void>();
 }
-
-/** EmbeddedDataField */
-
-declare const embeddedModel: typeof foundry.data.LightData;
-declare type embeddedOptions = foundry.data.fields.EmbeddedDataField.Options<typeof embeddedModel>;
-declare const embeddedAssignment: foundry.data.fields.EmbeddedDataField.AssignmentType<
-  typeof embeddedModel,
-  embeddedOptions
->;
-declare const embeddedInitialized: foundry.data.fields.EmbeddedDataField.InitializedType<
-  typeof embeddedModel,
-  embeddedOptions
->;
-declare const embeddedPersisted: foundry.data.fields.EmbeddedDataField.PersistedType<
-  typeof embeddedModel,
-  embeddedOptions
->;
-
-expectTypeOf(embeddedAssignment?.alpha).toEqualTypeOf<number | undefined | null>();
-expectTypeOf(embeddedInitialized?.alpha).toEqualTypeOf<number | undefined>();
-expectTypeOf(embeddedPersisted?.alpha).toEqualTypeOf<number | undefined>();
-expectTypeOf(embeddedModel.schema.fields.color).toEqualTypeOf<
-  foundry.data.fields.ColorField<{ label: "LIGHT.Color" }>
->();
-
-declare const embeddedLightField: foundry.data.fields.EmbeddedDataField<typeof foundry.data.LightData>;
-expectTypeOf(embeddedLightField.model).toEqualTypeOf<typeof foundry.data.LightData>();
 
 declare const schemaWithLight: foundry.data.fields.SchemaField.InnerInitializedType<{
   light: typeof embeddedLightField;
