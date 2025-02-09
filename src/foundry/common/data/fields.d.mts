@@ -14,7 +14,6 @@ import type { EmbeddedCollection, EmbeddedCollectionDelta, TypeDataModel } from 
 import type { DOCUMENT_OWNERSHIP_LEVELS } from "../constants.d.mts";
 import type { CONST } from "../../client-esm/client.d.mts";
 import type { DataModelValidationFailure } from "./validation-failure.mts";
-import type { EffectChangeData } from "../documents/_types.d.mts";
 import type {
   FormGroupConfig,
   FormInputConfig,
@@ -2133,7 +2132,7 @@ declare class EmbeddedCollectionField<
   /**
    * A reference to the DataModel subclass of the embedded document element
    */
-  get model(): Document.AnyConstructor;
+  get model(): ElementFieldType;
 
   /**
    * The DataSchema of the contained Document model.

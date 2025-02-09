@@ -2,6 +2,7 @@ import { expectTypeOf } from "vitest";
 import type { EffectChangeData } from "../../../../src/foundry/common/documents/_types.d.mts";
 
 type InitialType<ReturnType> = ReturnType | ((initialData: unknown) => ReturnType);
+type InitializeType<InitializedType> = InitializedType | (() => InitializedType | null);
 
 // DataField
 declare const dataField: foundry.data.fields.DataField;
@@ -48,8 +49,8 @@ expectTypeOf(schemaField.values()).toEqualTypeOf<FooType[]>();
 
 // expectTypeOf(schemaField.entries()).toEqualTypeOf<[name: string, dataField: FooType][]>();
 const entries = schemaField.entries()[0];
-expectTypeOf(entries[0]).toEqualTypeOf<string>();
-expectTypeOf(entries[1]).toEqualTypeOf<FooType>();
+expectTypeOf(entries![0]).toEqualTypeOf<string>();
+expectTypeOf(entries![1]).toEqualTypeOf<FooType>();
 
 expectTypeOf(schemaField.has("foo")).toEqualTypeOf<true>();
 expectTypeOf(schemaField.has("bar")).toEqualTypeOf<false>();
@@ -60,11 +61,12 @@ expectTypeOf(schemaField.getField("bar")).toEqualTypeOf<foundry.data.fields.Data
 
 declare const model: foundry.abstract.DataModel.Any;
 
-// TODO
 expectTypeOf(schemaField.initialize({ foo: "bar" }, model)).toEqualTypeOf<
-  { foo: string } | (() => { foo: string } | null)
+  InitializeType<foundry.data.fields.SchemaField.InitializedType<typeof schema>>
 >();
-expectTypeOf(schemaField.toObject({ foo: "bars" })).toEqualTypeOf<{ foo: string }>();
+expectTypeOf(schemaField.toObject({ foo: "bars" })).toEqualTypeOf<
+  foundry.data.fields.SchemaField.InitializedType<typeof schema>
+>();
 expectTypeOf(schemaField.migrateSource({}, "")).toEqualTypeOf<unknown>();
 
 expectTypeOf(foundry.data.fields.SchemaField.recursive).toEqualTypeOf<boolean>();
@@ -109,16 +111,16 @@ expectTypeOf(numberField.clean(3)).toEqualTypeOf<number | null>();
 expectTypeOf(numberField.getInitialValue()).toEqualTypeOf<number | null>();
 expectTypeOf(numberField.getInitialValue({})).toEqualTypeOf<number | null>();
 expectTypeOf(numberField.validate(4)).toEqualTypeOf<foundry.data.validation.DataModelValidationError | void>();
-expectTypeOf(numberField.initialize(3, model)).toEqualTypeOf<number | null | (() => number | null)>();
+expectTypeOf(numberField.initialize(3, model)).toEqualTypeOf<InitializeType<number | null>>();
 expectTypeOf(numberField.toObject(4)).toEqualTypeOf<number | null>();
 expectTypeOf(numberField.applyChange(2, model, change)).toEqualTypeOf<number | null>();
 
 // StringField
-const stringField = new foundry.data.fields.StringField({ initial: "abc" });
+const stringField = new foundry.data.fields.StringField({});
 
 expectTypeOf(stringField.required).toEqualTypeOf<boolean>();
 expectTypeOf(stringField.nullable).toEqualTypeOf<boolean>();
-expectTypeOf(stringField.initial).toEqualTypeOf<InitialType<string>>();
+expectTypeOf(stringField.initial).toEqualTypeOf<InitialType<string | undefined>>();
 expectTypeOf(stringField.blank).toEqualTypeOf<boolean>();
 expectTypeOf(stringField.trim).toEqualTypeOf<boolean>();
 expectTypeOf(stringField.textSearch).toEqualTypeOf<boolean>();
@@ -128,14 +130,14 @@ expectTypeOf(stringField.choices).toEqualTypeOf<
 expectTypeOf(stringField.toFormGroup()).toEqualTypeOf<HTMLDivElement>();
 expectTypeOf(stringField.toInput()).toEqualTypeOf<HTMLElement | HTMLCollection>();
 
-expectTypeOf(stringField.apply(() => 4, 6)).toEqualTypeOf<string>();
-expectTypeOf(stringField.clean("foo")).toEqualTypeOf<string>();
-expectTypeOf(stringField.getInitialValue()).toEqualTypeOf<string>();
-expectTypeOf(stringField.getInitialValue({})).toEqualTypeOf<string>();
+expectTypeOf(stringField.apply(() => "a", "b")).toEqualTypeOf<string>();
+expectTypeOf(stringField.clean("foo")).toEqualTypeOf<string | undefined>();
+expectTypeOf(stringField.getInitialValue()).toEqualTypeOf<string | undefined>();
+expectTypeOf(stringField.getInitialValue({})).toEqualTypeOf<string | undefined>();
 expectTypeOf(stringField.validate("foo")).toEqualTypeOf<foundry.data.validation.DataModelValidationError | void>();
-expectTypeOf(stringField.initialize("foo", model)).toEqualTypeOf<string | (() => string)>();
-expectTypeOf(stringField.toObject("foo")).toEqualTypeOf<string>();
-expectTypeOf(stringField.applyChange("foo", model, change)).toEqualTypeOf<string>();
+expectTypeOf(stringField.initialize("foo", model)).toEqualTypeOf<InitializeType<string | undefined>>();
+expectTypeOf(stringField.toObject("foo")).toEqualTypeOf<string | undefined>();
+expectTypeOf(stringField.applyChange("foo", model, change)).toEqualTypeOf<string | undefined>();
 
 // ObjectField
 type ObjType = {
@@ -148,6 +150,7 @@ expectTypeOf(objectField.nullable).toEqualTypeOf<boolean>();
 
 // TODO
 expectTypeOf(objectField.initial).toEqualTypeOf<InitialType<ObjType>>();
+expectTypeOf(objectField.initialize({ foo: "bar" }, model)).toEqualTypeOf<InitializeType<ObjType>>();
 
 // ArrayField
 const arrayField = new foundry.data.fields.ArrayField(new foundry.data.fields.StringField(), { initial: [] });
@@ -181,6 +184,43 @@ expectTypeOf(embeddedDataField.toObject(embeddedModel)).toEqualTypeOf<typeof fou
 expectTypeOf(embeddedDataField.migrateSource({}, {})).toEqualTypeOf<unknown>();
 
 // EmbeddedCollectionField
+declare const embeddedCollectionField: foundry.data.fields.EmbeddedCollectionField<
+  typeof foundry.documents.BaseActiveEffect,
+  Actor.ConfiguredInstance
+>;
+
+expectTypeOf(embeddedCollectionField.readonly).toEqualTypeOf<true>();
+expectTypeOf(embeddedCollectionField.hint).toEqualTypeOf<string>();
+expectTypeOf(embeddedCollectionField.model).toEqualTypeOf<typeof foundry.documents.BaseActiveEffect>();
+expectTypeOf(embeddedCollectionField.schema).toEqualTypeOf<typeof foundry.documents.BaseActiveEffect.schema>();
+
+expectTypeOf(foundry.data.fields.EmbeddedCollectionField.implementation).toEqualTypeOf<
+  typeof foundry.abstract.EmbeddedCollection
+>();
+
+declare const ParentDataModel: Actor.ConfiguredInstance;
+declare const AssignmentElementType: foundry.data.fields.EmbeddedCollectionField.InitializedElementType<
+  typeof foundry.documents.BaseActiveEffect
+>;
+declare const InitializedElementType: foundry.data.fields.EmbeddedCollectionField.InitializedElementType<
+  typeof foundry.documents.BaseActiveEffect
+>;
+declare type EmbeddedCollectionOptions = foundry.data.fields.EmbeddedCollectionField.DefaultOptions<
+  typeof AssignmentElementType
+>;
+declare const InitializedType: foundry.data.fields.EmbeddedCollectionField.InitializedType<
+  typeof AssignmentElementType,
+  typeof InitializedElementType,
+  typeof ParentDataModel,
+  EmbeddedCollectionOptions
+>;
+
+expectTypeOf(foundry.documents.BaseActiveEffect.hasTypeData).toEqualTypeOf<boolean>();
+expectTypeOf(ParentDataModel.name).toEqualTypeOf<string>();
+expectTypeOf(AssignmentElementType.documentName).toEqualTypeOf<"ActiveEffect">();
+expectTypeOf(InitializedElementType.collectionName).toEqualTypeOf<"effects">();
+expectTypeOf(InitializedType.get("", { strict: true })).toEqualTypeOf<ActiveEffect>();
+
 // EmbeddedCollectionDeltaField
 // EmbeddedDocumentField
 // DocumentIdField
@@ -199,6 +239,27 @@ expectTypeOf(embeddedDataField.migrateSource({}, {})).toEqualTypeOf<unknown>();
 // DocumentStatsField
 // DocumentTypeField
 // TypeDataField
+
+// TypeDataField
+declare const JEPCoreTypes: JournalEntryPage.TypeNames;
+declare const JEPSystemTypes: Game.Model.TypeNames<"JournalEntryPage">;
+
+declare global {
+  interface DataModelConfig {
+    JournalEntryPage: {
+      headquarters: typeof foundry.abstract.TypeDataModel<DataSchema, JournalEntryPage>;
+    };
+  }
+}
+
+expectTypeOf(JEPCoreTypes).toEqualTypeOf<"base" | "image" | "pdf" | "text" | "video">();
+expectTypeOf(JEPSystemTypes).toEqualTypeOf<"headquarters">();
+
+declare const myJournalEntryPage: JournalEntryPage;
+if (myJournalEntryPage.system instanceof foundry.abstract.TypeDataModel) {
+  expectTypeOf(myJournalEntryPage.system?.prepareBaseData()).toEqualTypeOf<void>();
+}
+
 // TypedSchemaField
 
 // Various special case tests
@@ -240,67 +301,7 @@ new foundry.documents.BaseNote({ textAnchor: 2 });
 // @ts-expect-error - t cannot be an arbitrary string.
 new foundry.documents.BaseMeasuredTemplate({ t: "foobar" });
 
-// TypeDataField
-declare const JEPCoreTypes: JournalEntryPage.TypeNames;
-declare const JEPSystemTypes: Game.Model.TypeNames<"JournalEntryPage">;
-
-declare global {
-  interface DataModelConfig {
-    JournalEntryPage: {
-      headquarters: typeof foundry.abstract.TypeDataModel<DataSchema, JournalEntryPage>;
-    };
-  }
-}
-
-expectTypeOf(JEPCoreTypes).toEqualTypeOf<"base" | "image" | "pdf" | "text" | "video">();
-expectTypeOf(JEPSystemTypes).toEqualTypeOf<"headquarters">();
-
-declare const myJournalEntryPage: JournalEntryPage;
-if (myJournalEntryPage.system instanceof foundry.abstract.TypeDataModel) {
-  expectTypeOf(myJournalEntryPage.system?.prepareBaseData()).toEqualTypeOf<void>();
-}
-
-declare const schemaWithLight: foundry.data.fields.SchemaField.InnerInitializedType<{
-  light: typeof embeddedLightField;
-}>;
-expectTypeOf(schemaWithLight.light).toEqualTypeOf<foundry.data.LightData>();
-
-/** EmbeddedCollectionField */
-
-declare const effectsField: foundry.data.fields.EmbeddedCollectionField<
-  typeof foundry.documents.BaseActiveEffect,
-  Actor.ConfiguredInstance
->;
-
-expectTypeOf(effectsField.hint).toEqualTypeOf<string>();
-
-declare const ElementFieldType: typeof foundry.documents.BaseActiveEffect;
-declare const ParentDataModel: Actor.ConfiguredInstance;
-declare const AssignmentElementType: foundry.data.fields.EmbeddedCollectionField.InitializedElementType<
-  typeof ElementFieldType
->;
-declare const InitializedElementType: foundry.data.fields.EmbeddedCollectionField.InitializedElementType<
-  typeof ElementFieldType
->;
-declare type EmbeddedCollectionOptions = foundry.data.fields.EmbeddedCollectionField.DefaultOptions<
-  typeof AssignmentElementType
->;
-declare const InitializedType: foundry.data.fields.EmbeddedCollectionField.InitializedType<
-  typeof AssignmentElementType,
-  typeof InitializedElementType,
-  typeof ParentDataModel,
-  EmbeddedCollectionOptions
->;
-
-expectTypeOf(ElementFieldType.hasTypeData).toEqualTypeOf<boolean>();
-expectTypeOf(ParentDataModel.name).toEqualTypeOf<string>();
-expectTypeOf(AssignmentElementType.documentName).toEqualTypeOf<"ActiveEffect">();
-expectTypeOf(InitializedElementType.collectionName).toEqualTypeOf<"effects">();
-expectTypeOf(InitializedType.get("", { strict: true })).toEqualTypeOf<ActiveEffect>();
-
 const stringField2 = new foundry.data.fields.StringField();
-
-const withChoices = new foundry.data.fields.StringField({ choices: ["a", "b", "c"] });
 
 // @ts-expect-error - A string field is not `nullable` by default and validate does not accept null.
 stringField2.validate(null);
@@ -318,9 +319,6 @@ type _NullOptions = DataField.Options<null>;
 
 // @ts-expect-error - Options cannot accept undefined.
 type _UndefinedOptions = DataField.Options<undefined>;
-
-// Options never contains required elements.
-const _emptyOptions = {} satisfies DataField.Options.Default<number>;
 
 // Regression test for issue where label was being constrained to `""`.
 // Reported by @FloRadical on Discord, see https://discord.com/channels/732325252788387980/793933527065690184/1268262811063287869.
@@ -341,4 +339,5 @@ stringField2.toInput({ blank: "blank option", options: [{ value: "option2", labe
 stringField2.toInput({ blank: "blank option" });
 
 // Because this `StringField` has options it doesn't need to be passed in to `toInput` anymore.
+const withChoices = new foundry.data.fields.StringField({ choices: ["a", "b", "c"] });
 withChoices.toInput({ blank: "blank option" });
