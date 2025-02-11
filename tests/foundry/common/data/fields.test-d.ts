@@ -144,13 +144,12 @@ type ObjType = {
   foo: string;
 };
 const objectField = new foundry.data.fields.ObjectField({ initial: { foo: "bar" } as ObjType });
-
+type ObjInitializedType = foundry.data.fields.ObjectField.InitializedType<{ initial: ObjType }>;
 expectTypeOf(objectField.required).toEqualTypeOf<boolean>();
 expectTypeOf(objectField.nullable).toEqualTypeOf<boolean>();
 
-// TODO
-expectTypeOf(objectField.initial).toEqualTypeOf<InitialType<ObjType>>();
-expectTypeOf(objectField.initialize({ foo: "bar" }, model)).toEqualTypeOf<InitializeType<ObjType>>();
+expectTypeOf(objectField.initial).toEqualTypeOf<InitialType<ObjInitializedType>>();
+expectTypeOf(objectField.initialize({ foo: "bar" }, model)).toEqualTypeOf<InitializeType<ObjInitializedType>>();
 
 // ArrayField
 const arrayField = new foundry.data.fields.ArrayField(new foundry.data.fields.StringField(), { initial: [] });
@@ -158,8 +157,7 @@ const arrayField = new foundry.data.fields.ArrayField(new foundry.data.fields.St
 expectTypeOf(arrayField.required).toEqualTypeOf<boolean>();
 expectTypeOf(arrayField.nullable).toEqualTypeOf<boolean>();
 
-// TODO
-expectTypeOf(arrayField.initial).toEqualTypeOf<InitialType<string[]>>();
+expectTypeOf(arrayField.initial).toEqualTypeOf<InitialType<(string | undefined)[]>>();
 expectTypeOf(arrayField.element).toEqualTypeOf<foundry.data.fields.StringField>();
 
 expectTypeOf(foundry.data.fields.ArrayField.recursive).toEqualTypeOf<boolean>();
@@ -170,8 +168,7 @@ const setField = new foundry.data.fields.SetField(new foundry.data.fields.String
 expectTypeOf(setField.required).toEqualTypeOf<boolean>();
 expectTypeOf(setField.nullable).toEqualTypeOf<boolean>();
 
-// TODO
-expectTypeOf(setField.initial).toEqualTypeOf<InitialType<string[]>>();
+expectTypeOf(setField.initial).toEqualTypeOf<InitialType<Set<string | undefined>>>();
 expectTypeOf(setField.element).toEqualTypeOf<foundry.data.fields.StringField>();
 
 // EmbeddedDataField
@@ -179,8 +176,12 @@ declare const embeddedModel: foundry.data.LightData;
 declare const embeddedDataField: foundry.data.fields.EmbeddedDataField<typeof foundry.data.LightData>;
 expectTypeOf(embeddedDataField.model).toEqualTypeOf<typeof foundry.data.LightData>();
 
-// TODO
-expectTypeOf(embeddedDataField.toObject(embeddedModel)).toEqualTypeOf<typeof foundry.data.LightData>();
+expectTypeOf(embeddedDataField.toObject(embeddedModel)).toEqualTypeOf<
+  foundry.data.fields.EmbeddedDataField.PersistedType<
+    typeof foundry.data.LightData,
+    foundry.data.fields.EmbeddedDataField.DefaultOptions
+  >
+>();
 expectTypeOf(embeddedDataField.migrateSource({}, {})).toEqualTypeOf<unknown>();
 
 // EmbeddedCollectionField
@@ -198,34 +199,45 @@ expectTypeOf(foundry.data.fields.EmbeddedCollectionField.implementation).toEqual
   typeof foundry.abstract.EmbeddedCollection
 >();
 
-declare const ParentDataModel: Actor.ConfiguredInstance;
-declare const AssignmentElementType: foundry.data.fields.EmbeddedCollectionField.InitializedElementType<
-  typeof foundry.documents.BaseActiveEffect
->;
-declare const InitializedElementType: foundry.data.fields.EmbeddedCollectionField.InitializedElementType<
-  typeof foundry.documents.BaseActiveEffect
->;
-declare type EmbeddedCollectionOptions = foundry.data.fields.EmbeddedCollectionField.DefaultOptions<
-  typeof AssignmentElementType
->;
-declare const InitializedType: foundry.data.fields.EmbeddedCollectionField.InitializedType<
-  typeof AssignmentElementType,
-  typeof InitializedElementType,
-  typeof ParentDataModel,
-  EmbeddedCollectionOptions
->;
-
-expectTypeOf(foundry.documents.BaseActiveEffect.hasTypeData).toEqualTypeOf<boolean>();
-expectTypeOf(ParentDataModel.name).toEqualTypeOf<string>();
-expectTypeOf(AssignmentElementType.documentName).toEqualTypeOf<"ActiveEffect">();
-expectTypeOf(InitializedElementType.collectionName).toEqualTypeOf<"effects">();
-expectTypeOf(InitializedType.get("", { strict: true })).toEqualTypeOf<ActiveEffect>();
-
 // EmbeddedCollectionDeltaField
+expectTypeOf(foundry.data.fields.EmbeddedCollectionDeltaField.implementation).toEqualTypeOf<
+  typeof foundry.abstract.EmbeddedCollectionDelta
+>();
+
 // EmbeddedDocumentField
+// TODO - here down
+const embeddedDocumentField = new foundry.data.fields.EmbeddedDocumentField(foundry.documents.BaseActor);
+
+expectTypeOf(embeddedDocumentField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(embeddedDocumentField.hint).toEqualTypeOf<string>();
+expectTypeOf(embeddedDocumentField.getCollection()).toEqualTypeOf<typeof foundry.documents.BaseActiveEffect>();
+
+expectTypeOf(foundry.data.fields.EmbeddedDocumentField.hierarchical).toEqualTypeOf<boolean>();
+
 // DocumentIdField
+const documentIdField = new foundry.data.fields.DocumentIdField({});
+
+expectTypeOf(documentIdField.required).toEqualTypeOf<boolean>();
+expectTypeOf(documentIdField.blank).toEqualTypeOf<boolean>();
+expectTypeOf(documentIdField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(documentIdField.initial).toEqualTypeOf < InitialType<string | undefined>();
+expectTypeOf(documentIdField.readonly).toEqualTypeOf<boolean>();
+expectTypeOf(documentIdField.validationError).toEqualTypeOf<string>();
+
 // DocumentUUIDField
+const documentUUIDField = new foundry.data.fields.DocumentUUIDField({});
+
+expectTypeOf(documentUUIDField.type).toEqualTypeOf<foundry.documents.Document.Type | undefined>();
+expectTypeOf(documentUUIDField.embedded).toEqualTypeOf<boolean | undefined>();
+
 // ForeignDocumentField
+const foreignDocumentField = new foundry.data.fields.ForeignDocumentField(foundry.documents.BaseActor);
+
+expectTypeOf(foreignDocumentField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(foreignDocumentField.readonly).toEqualTypeOf<boolean>();
+expectTypeOf(foreignDocumentField.idOnly).toEqualTypeOf<boolean>();
+expectTypeOf(foreignDocumentField.model).toEqualTypeOf<boolean>();
+
 // ColorField
 // FilePathField
 // AngleField
@@ -240,6 +252,7 @@ expectTypeOf(InitializedType.get("", { strict: true })).toEqualTypeOf<ActiveEffe
 // DocumentTypeField
 // TypeDataField
 
+// TODO: check everything below here
 // TypeDataField
 declare const JEPCoreTypes: JournalEntryPage.TypeNames;
 declare const JEPSystemTypes: Game.Model.TypeNames<"JournalEntryPage">;
