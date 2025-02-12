@@ -205,7 +205,6 @@ expectTypeOf(foundry.data.fields.EmbeddedCollectionDeltaField.implementation).to
 >();
 
 // EmbeddedDocumentField
-// TODO - here down
 const embeddedDocumentField = new foundry.data.fields.EmbeddedDocumentField(foundry.documents.BaseActor);
 
 expectTypeOf(embeddedDocumentField.nullable).toEqualTypeOf<boolean>();
@@ -220,7 +219,7 @@ const documentIdField = new foundry.data.fields.DocumentIdField({});
 expectTypeOf(documentIdField.required).toEqualTypeOf<boolean>();
 expectTypeOf(documentIdField.blank).toEqualTypeOf<boolean>();
 expectTypeOf(documentIdField.nullable).toEqualTypeOf<boolean>();
-expectTypeOf(documentIdField.initial).toEqualTypeOf < InitialType<string | undefined>();
+expectTypeOf(documentIdField.initial).toEqualTypeOf<InitialType<string | undefined>>();
 expectTypeOf(documentIdField.readonly).toEqualTypeOf<boolean>();
 expectTypeOf(documentIdField.validationError).toEqualTypeOf<string>();
 
@@ -239,31 +238,86 @@ expectTypeOf(foreignDocumentField.idOnly).toEqualTypeOf<boolean>();
 expectTypeOf(foreignDocumentField.model).toEqualTypeOf<boolean>();
 
 // ColorField
-// FilePathField
-// AngleField
-// AlphaField
-// HueField
-// DocumentOwnershipField
-// JSONField
-// AnyField
-// HTMLField
-// IntegerSortField
-// DocumentStatsField
-// DocumentTypeField
-// TypeDataField
+const colorField = new foundry.data.fields.ColorField();
 
-// TODO: check everything below here
+expectTypeOf(colorField.nullable).toEqualTypeOf<boolean>();
+expectTypeOf(colorField.blank).toEqualTypeOf<boolean>();
+expectTypeOf(colorField.validationError).toEqualTypeOf<string>();
+
+// FilePathField
+const filePathField = new foundry.data.fields.FilePathField();
+
+expectTypeOf(filePathField.categories).toEqualTypeOf<keyof typeof CONST.FILE_CATEGORIES>();
+expectTypeOf(filePathField.base64).toEqualTypeOf<boolean>();
+expectTypeOf(filePathField.wildcard).toEqualTypeOf<boolean>();
+
+// AngleField
+const angleField = new foundry.data.fields.AngleField();
+
+expectTypeOf(angleField.base).toEqualTypeOf<number>();
+expectTypeOf(angleField.min).toEqualTypeOf<number | undefined>();
+expectTypeOf(angleField.max).toEqualTypeOf<number | undefined>();
+
+// AlphaField
+const alphaField = new foundry.data.fields.AlphaField();
+
+expectTypeOf(alphaField.min).toEqualTypeOf<number | undefined>();
+expectTypeOf(alphaField.max).toEqualTypeOf<number | undefined>();
+
+// HueField
+const hueField = new foundry.data.fields.HueField();
+expectTypeOf(hueField).toEqualTypeOf<foundry.data.fields.HueField>();
+
+// DocumentOwnershipField
+const documentOwnershipField = new foundry.data.fields.DocumentOwnershipField();
+expectTypeOf(documentOwnershipField).toEqualTypeOf<foundry.data.fields.DocumentOwnershipField>();
+
+// JSONField
+const jsonField = new foundry.data.fields.JSONField();
+expectTypeOf(jsonField).toEqualTypeOf<foundry.data.fields.JSONField>();
+
+// AnyField
+const anyField = new foundry.data.fields.AnyField();
+expectTypeOf(anyField).toEqualTypeOf<foundry.data.fields.AnyField>();
+
+// HTMLField
+const htmlField = new foundry.data.fields.HTMLField();
+expectTypeOf(htmlField).toEqualTypeOf<foundry.data.fields.HTMLField>();
+
+// IntegerSortField
+const integerSortField = new foundry.data.fields.IntegerSortField();
+expectTypeOf(integerSortField).toEqualTypeOf<foundry.data.fields.IntegerSortField>();
+
+// DocumentStatsField
+const documentStatsField = new foundry.data.fields.DocumentStatsField();
+expectTypeOf(documentStatsField).toEqualTypeOf<foundry.data.fields.DocumentStatsField>();
+
+// DocumentTypeField
+const documentTypeField = new foundry.data.fields.DocumentTypeField(foundry.documents.BaseActor);
+expectTypeOf(documentTypeField).toEqualTypeOf<foundry.data.fields.DocumentTypeField<foundry.documents.BaseActor>>();
+
 // TypeDataField
+declare const systemDocument: typeof Actor & { metadata: { name: "Actor" } };
+const typeDataField = new foundry.data.fields.TypeDataField(systemDocument);
+
+expectTypeOf(typeDataField.document).toEqualTypeOf<typeof systemDocument>();
+expectTypeOf(typeDataField.documentName).toEqualTypeOf<string>();
+
+declare const dataModel: foundry.abstract.DataModel.Any;
+expectTypeOf(foundry.data.fields.TypeDataField.getModelProvider(dataModel)).toEqualTypeOf<System | Module | null>();
+
 declare const JEPCoreTypes: JournalEntryPage.TypeNames;
 declare const JEPSystemTypes: Game.Model.TypeNames<"JournalEntryPage">;
 
 declare global {
   interface DataModelConfig {
     JournalEntryPage: {
-      headquarters: typeof foundry.abstract.TypeDataModel<DataSchema, JournalEntryPage>;
+      headquarters: typeof foundry.abstract.TypeDataModel<foundry.data.fields.DataSchema, JournalEntryPage>;
     };
   }
 }
+
+// TODO: check everything below here - probably need to wait for document v2
 
 expectTypeOf(JEPCoreTypes).toEqualTypeOf<"base" | "image" | "pdf" | "text" | "video">();
 expectTypeOf(JEPSystemTypes).toEqualTypeOf<"headquarters">();
@@ -274,6 +328,9 @@ if (myJournalEntryPage.system instanceof foundry.abstract.TypeDataModel) {
 }
 
 // TypedSchemaField
+const typedSchemaField = new foundry.data.fields.TypedSchemaField();
+expectTypeOf(typedSchemaField).toEqualTypeOf<foundry.data.fields.TypedSchemaField>();
+expectTypeOf(typedSchemaField.migrateSource({}, {})).toEqualTypeOf<unknown>();
 
 // Various special case tests
 // #3071 - SchemaField circularity issue

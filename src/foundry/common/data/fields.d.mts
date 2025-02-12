@@ -3208,7 +3208,7 @@ declare class HueField<
   const InitializedType = NumberField.InitializedType<Options>,
   const PersistedType extends number | null | undefined = NumberField.InitializedType<Options>,
 > extends NumberField<Options, AssignmentType, InitializedType, PersistedType> {
-  static get _defaults(): HueField.Options;
+  protected static override get _defaults(): HueField.Options;
 
   protected override _cast(value: AssignmentType): InitializedType;
 }
@@ -4005,7 +4005,7 @@ declare class TypedSchemaField<
    */
   constructor(types: Types, options?: Options, context?: DataField.Context);
 
-  static get _defaults(): DataField.Options.Any;
+  protected static override get _defaults(): DataField.Options.Any;
 
   /**
    * The types of this field.
@@ -4180,7 +4180,7 @@ declare class JavaScriptField<
 > extends _InternalJavaScriptField<Options, AssignmentType, InitializedType, PersistedType> {
   constructor(options?: Options, context?: DataField.Context);
 
-  static get _defaults(): JavaScriptField.Options;
+  protected static override get _defaults(): JavaScriptField.Options;
 
   protected override _validateType(
     value: InitializedType,
