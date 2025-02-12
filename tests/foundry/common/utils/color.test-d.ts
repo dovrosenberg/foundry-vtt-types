@@ -26,4 +26,23 @@ expectTypeOf(color.maximize(new Color())).toEqualTypeOf<Color>();
 expectTypeOf(color.applyRGB([])).toEqualTypeOf<void>();
 
 // TODO - finish
-expectTypeOf(color.applyRGB([])).toEqualTypeOf<void>();
+expectTypeOf(Color.mix(1, 2, 3)).toEqualTypeOf<number>();
+expectTypeOf(Color.multiplyScalar(1, 2)).toEqualTypeOf<number>();
+expectTypeOf(Color.maximize(1, 3)).toEqualTypeOf<number>();
+expectTypeOf(Color.maximizeScalar(1, 3)).toEqualTypeOf<number>();
+expectTypeOf(Color.addScalar(1, 3)).toEqualTypeOf<number>();
+expectTypeOf(Color.subtract(1, 3)).toEqualTypeOf<number>();
+expectTypeOf(Color.subtractScalar(1, 3)).toEqualTypeOf<number>();
+expectTypeOf(Color.minimize(1, 3)).toEqualTypeOf<number>();
+expectTypeOf(Color.minimizeScalar(1, 3)).toEqualTypeOf<number>();
+expectTypeOf(Color.applyRGB(1, [])).toEqualTypeOf<void>();
+
+declare const cs: foundry.utils.Color.Source;
+expectTypeOf(Color.from(cs)).toEqualTypeOf<Color>();
+
+expectTypeOf(Color.fromString("")).toEqualTypeOf<Color>();
+expectTypeOf(Color.fromRGB([1, 1, 1])).toEqualTypeOf<Color>();
+expectTypeOf(Color.fromRGBvalues(1, 1, 1)).toEqualTypeOf<Color>();
+expectTypeOf(Color.fromHSV([1, 1, 1])).toEqualTypeOf<Color>();
+expectTypeOf(Color.fromHSL([1, 1, 1])).toEqualTypeOf<Color>();
+expectTypeOf(Color.fromLinearRGB([1, 1, 1])).toEqualTypeOf<Color>();
