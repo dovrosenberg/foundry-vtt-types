@@ -25,7 +25,6 @@ expectTypeOf(color.subtract(new Color())).toEqualTypeOf<Color>();
 expectTypeOf(color.maximize(new Color())).toEqualTypeOf<Color>();
 expectTypeOf(color.applyRGB([])).toEqualTypeOf<void>();
 
-// TODO - finish
 expectTypeOf(Color.mix(1, 2, 3)).toEqualTypeOf<number>();
 expectTypeOf(Color.multiplyScalar(1, 2)).toEqualTypeOf<number>();
 expectTypeOf(Color.maximize(1, 3)).toEqualTypeOf<number>();
